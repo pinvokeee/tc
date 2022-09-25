@@ -1,0 +1,103 @@
+@media (max-width: 959px)
+{
+    .content
+    {
+        max-height: calc(100% - 56px);
+    }
+}
+
+@media (min-width: 960px)
+{
+    .content
+    {
+        max-height: calc(100% - 64px);
+    }
+}
+
+.splitpanel
+{
+    display: flex; 
+    height: 100%; 
+    width: 100%; 
+    flex-direction: row;
+    /* position: fixed;  */
+    justify-content:flex-start; 
+}
+
+.splitpanel_h
+{
+    display: flex; 
+    height: 100%;
+    width: 100%; 
+    flex-direction: column;
+    /* position: fixed;  */
+    justify-content:flex-start; 
+    overflow-y: auto;
+}
+
+.panel
+{
+    display: flex;
+    width: auto;
+    flex-direction: row;
+}
+
+.panel_h
+{
+    display: flex;
+    width: auto;
+    flex-direction: column;
+
+    /* height: 50%; */
+}
+
+
+.innerContainer
+{
+    height: 100%;
+    overflow-y: auto;
+}
+
+.innerContainer2
+{
+    height: 1px;
+}
+
+.innerContainer_h
+{
+    width: 100%;
+    overflow-x: auto;
+}
+
+.innerContainer2_h
+{
+    /* width: 1px; */
+}
+
+.splitter
+{
+    background-color: lightGray;
+    width: 2px;
+    height: 100%;
+    cursor:col-resize;
+    float: right;
+}
+
+.splitter_h
+{
+    background-color: lightGray;
+    height: 2px;
+    width: 100%;
+    cursor:row-resize;
+}
+
+/* .panel:last-child{
+    float: right;
+} */
+
+.mainContainer
+{
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}

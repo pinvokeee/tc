@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link href="./css/main.css" rel="stylesheet">
+
   <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
@@ -14,6 +16,229 @@
   <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
   <script>
+
+    const Splitter = 
+    {
+      props:
+      {
+        horizontal:
+        {
+          type: Boolean,
+          default: false,
+        },
+      },
+
+      data()
+      {
+        return {
+          
+          isMouseDown: false,
+
+        }
+      },
+
+      methods:
+      {
+        mouseDown: function (e)
+        {
+          this.$emit("resizeStart", e);
+
+          // this.isMouseDown = true;
+        },
+      },
+
+      computed:
+      {
+        className:
+        {
+          get()
+          {
+            return !this.horizontal ? "splitter" : "splitter_h";
+          }
+        },
+      },
+
+      template: `
+        <div tabindex="0" @mousedown="mouseDown" :class="className">
+        </div>
+      `
+    }
+
+    const Panel = 
+    {
+      name: "Panel",
+
+      components:
+      {
+        "Splitter": Splitter
+      },
+
+      data()
+      {
+        return {
+          width: 100,
+          horizontal: false,
+
+          rootElement: null,
+          parent: null,
+        }
+      },
+
+      mounted: function()
+      {
+        this.rootElement = this.$el;
+        this.parent = this.$parent != null && this.$parent.isSplitPanel ? this.$parent : null;
+
+        if (this.parent != null)
+        {
+          this.horizontal = this.parent.horizontal;
+        }
+
+
+      },
+
+      computed: 
+      {
+        showSplitter:
+        {
+          get()
+          {
+            if (this.rootElement == null) return false;
+            return this.rootElement.nextElementSibling != null;
+          }
+        },
+
+        panelClassName:
+        {
+          get()
+          {
+            return !this.horizontal ? "panel" : "panel_h";
+          }
+        },
+
+        innerContainerClassName:
+        {
+          get()
+          {
+            return !this.horizontal ? "innerContainer" : "innerContainer_h";
+          }
+        },
+
+        innerContainer2ClassName:
+        {
+          get()
+          {
+            return !this.horizontal ? "innerContainer2" : "innerContainer2_h";
+          }
+        }
+      },
+
+      methods:
+      {
+        _resizeStart: function(e) 
+        {
+          this.parent?.resizeStart(e, this);
+        },
+
+        _resizeEnd: function()
+        {
+          this.parent?.resizeEnd(this);
+        },
+
+        setWidth(width)
+        {          
+          this.$refs.innerContainer.style.width = `${width}px`;
+        },
+
+        setHeight(height)
+        {          
+          this.$refs.innerContainer.style.height = `${height}px`;
+        }
+      },
+
+      template: `
+          <div :class="panelClassName">
+          <div ref="innerContainer" :class="innerContainerClassName">
+            <!--<div :class="innerContainer2ClassName">-->
+              <slot></slot>
+            <!--</div>-->
+          </div>
+          <Splitter v-show="showSplitter" :horizontal="horizontal" @resizeStart="_resizeStart"></Splitter>
+          </div>
+      `
+    }
+
+    const SplitPanel = 
+    {
+      components:
+      {
+        "Panel": Panel,
+      },
+
+      props:
+      {
+        "horizontal":
+        {
+          default: false,
+          type: Boolean
+        }
+      },
+
+      methods:
+      {
+        resizeStart: function(e, target)
+        {
+          window.getSelection().removeAllRanges();
+
+          this.enterPos.x = e.x;
+          this.enterPos.y = e.y;
+
+          this.changeTargetPanel = target;
+        },
+
+        mousemove(e)
+        {
+          if (this.changeTargetPanel != null)
+          {
+            if (!this.horizontal)
+            {
+              this.changeTargetPanel.setWidth(e.x);
+            }
+            else
+            {
+              this.changeTargetPanel.setHeight(e.y);
+            }
+          }
+        },
+
+        mouseup(e)
+        {
+          console.log(e, this.enterPos);
+
+          console.log("END");
+          this.changeTargetPanel = null;
+        }
+
+      },
+
+      data()
+      {
+        return {
+          isSplitPanel: true,
+
+          changeTargetPanel : null,
+          enterPos: { x: 0, y: 0 },
+
+        }
+      },
+
+      template: `
+        <div :class="!horizontal ? 'splitpanel' : 'splitpanel_h'" @mousemove="mousemove" @mouseup="mouseup">
+          <slot></slot>
+        </div>
+      `
+    }
+
 
     class templateStore
     {
@@ -59,10 +284,57 @@
       el: '#app',
       vuetify: new Vuetify(),
 
+      components: 
+      {
+        "Panel": Panel,
+        "SplitPanel": SplitPanel,
+      },
+
       data()
       {
         return {
-            templates: new templateStore()
+            templates: new templateStore(),
+
+      items: [
+        {
+          icon: 'mdi-inbox',
+          text: 'Inboxaaaaaaaaaaaaaaaaaaaa',
+        },
+        {
+          icon: 'mdi-star',
+          text: 'Star',
+        },
+        {
+          icon: 'mdi-send',
+          text: 'Send',
+        },
+        {
+          icon: 'mdi-email-open',
+          text: 'Drafts',
+        },
+        {
+          icon: 'mdi-email-open',
+          text: 'Drafts',
+        },
+        {
+          icon: 'mdi-email-open',
+          text: 'Drafts',
+        },
+        {
+          icon: 'mdi-email-open',
+          text: 'Drafts',
+        },
+        {
+          icon: 'mdi-email-open',
+          text: 'Drafts',
+        },
+        {
+          icon: 'mdi-email-open',
+          text: 'Drafts',
+        },
+        
+      ],
+      model: 1,
         };
       },
 
@@ -79,13 +351,89 @@
         },
       },
 
+      a_template: `
+        <div>
+          <div style="position: relative; background-color: red; width: 100px; height: 100px; top: 100px; left: 100px;">
+            <div style="height: 50%; width: 10px; background-color: blue;"></div> 
+            <div style="height: 50%; width: 10px; background-color: black;"></div> 
+          </div>
+          <div style="width:100px; background-color: yellow; height: 870px;"></div>
+            
+        </div>
+      `,
+
       template:`
-        <v-app>
+        <v-app>          
             <v-main>
-                <v-container>Hello world{{templates.bbb.ccc.length}}
-                    <v-btn @click="selectDirectory">フォルダを開く</v-btn>
-                    <v-btn @click="test">{{templates.bbb.ccc.length}}</v-btn>
-                </v-container>
+                <div class="mainContainer">
+                  <v-app-bar elevation="4" dark></v-app-bar>
+                  <div class="content">
+                  <SplitPanel>
+
+<Panel>
+  <v-list>
+  <v-list-item-group v-model="model">
+      <v-list-item
+        v-for="(item, i) in items"
+        :key="i"
+      >
+        <v-list-item-icon>
+          <v-icon v-text="item.icon"></v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title v-text="item.text"></v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+    </v-list-item-group>
+  </v-list>
+</Panel>
+
+<Panel>
+  <SplitPanel horizontal>
+      <Panel>
+      <v-list>
+      <v-list-item-group v-model="model">
+        <v-list-item
+          v-for="(item, i) in items"
+          :key="i"
+        >
+          <v-list-item-icon>
+            <v-icon v-text="item.icon"></v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title v-text="item.text"></v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list-item-group>
+    </v-list>
+    </Panel>
+
+      <Panel>
+      <v-list>
+      <v-list-item-group v-model="model">
+        <v-list-item
+          v-for="(item, i) in items"
+          :key="i"
+        >
+          <v-list-item-icon>
+            <v-icon v-text="item.icon"></v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title v-text="item.text"></v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list-item-group>
+    </v-list>
+    </Panel>
+
+  </SplitPanel>  
+
+</Panel>
+</SplitPanel>
+</div>
+
+                </div>
+
             </v-main>
         </v-app>
       `
