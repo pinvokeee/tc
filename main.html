@@ -13,6 +13,8 @@
 
   </div>
 
+  <script src="./js/IDBHelper.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
   <script>
@@ -255,11 +257,29 @@
             }
         }
 
-        async openDirectory()
+        async openDirectory(targetHandle = null)
         {
-            const handle = await window.showDirectoryPicker();
+            if (targetHandle == null)
+            {
+              const newHandle = await window.showDirectoryPicker();
 
-            this.scanDirectories(await handle.entries());
+              const idbhelper = new IDBHelper();
+
+              await idbhelper.open("configStore", () => IDBHelper.createStore("pickedHandles"));
+              
+              idbhelper.transaction("pickedHandles", async (target) => 
+              {
+                await target.putObject(0, { handle: newHandle });
+                console.log("書き込み完了");
+                console.log((await target.get(0)).result);
+              });
+
+              this.scanDirectories(await newHandle.entries());
+            }
+            else
+            {
+              this.scanDirectories(await targetHandle.entries());
+            }
         }
 
         async scanDirectories(entries)
@@ -268,7 +288,7 @@
             {
                 if (handle.kind == "file")
                 {
-                    this.reader.readAsText(await handle.getFile());
+                    console.log(await(await handle.getFile()).text());
                 }
                 else if (handle.kind == "directory")
                 {
@@ -340,9 +360,19 @@
 
       methods:
       {
-        selectDirectory()
+        async selectDirectory()
         {
-            this.templates.openDirectory();
+            const idbhelper = new IDBHelper();
+            await idbhelper.open("configStore");
+
+            await idbhelper.transaction("pickedHandles", async (target) => 
+            {
+              const obj = (await target.get(0)).result;       
+              console.log(obj);     
+              await obj.handle.requestPermission({ mode: "readwrite" });
+
+              this.templates.openDirectory(obj.handle);
+            });
         },
 
         test()
@@ -366,7 +396,9 @@
         <v-app>          
             <v-main>
                 <div class="mainContainer">
-                  <v-app-bar elevation="4" dark></v-app-bar>
+                  <v-app-bar elevation="4" dark>
+                    <v-btn @click="selectDirectory">AAA</v-btn>
+                    </v-app-bar>
                   <div class="content">
                   <SplitPanel>
 
